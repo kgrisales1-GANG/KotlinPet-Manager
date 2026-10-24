@@ -1,5 +1,5 @@
 package com.example.kotlinpetmanager.ui.theme
-package com.example.kotlinpetmanager
+package com.example.kotlinpetmanager // Mantén tu paquete original
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -10,21 +10,44 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun FichaMascota(modifier: Modifier = Modifier) {
-    // 1. Declaración de variables usando val (inmutables) y var (mutables)
-    val nombre: String = "Firulais"
-    val sexo: Char = 'M'
-    var edad: Int = 3
-    var peso: Float = 12.5f
-    var estadoVacunacion: Boolean = false
+    val nombre = "Firulais"
+    val sexo = 'M'
+    var edad = 3
+    var peso = 12.5f
+    var estadoVacunacion = false
 
-    // 2. Interfaz Visual: Mostramos los datos en pantalla usando interpolación ($)[cite: 6]
+    // Simulación: El paciente cumplió años y subió de peso
+    edad += 1
+    peso += 1.3f
+    estadoVacunacion = true
+
+    // Clasificación de la mascota usando la estructura 'when'[cite: 7]
+    val esUrgencia = true
+    val categoria = when {
+        edad in 0..1 -> "Cachorro"
+        edad in 2..7 -> "Adulto"
+        edad >= 8 -> "Senior"
+        else -> "Edad no válida"
+    }
+
+    // Operadores lógicos en un 'if' para evaluar la prioridad[cite: 7]
+    val atencion = if (esUrgencia || categoria == "Senior") {
+        "Prioridad Alta"
+    } else {
+        "Atención Regular"
+    }
+
+    // Interfaz visual actualizada
     Column(modifier = modifier.padding(16.dp)) {
-        Text(text = "🐾 Ficha del Paciente")
+        Text(text = "🐾 Ficha del Paciente Actualizada")
         Text(text = "----------------------------------")
         Text(text = "Nombre: $nombre")
         Text(text = "Sexo: $sexo")
-        Text(text = "Edad: $edad años")
-        Text(text = "Peso: $peso kg")
+        Text(text = "Edad actual: $edad años")
+        Text(text = "Peso actual: $peso kg")
         Text(text = "¿Vacunado?: $estadoVacunacion")
+        Text(text = "----------------------------------")
+        Text(text = "Categoría: $categoria")
+        Text(text = "Estado: $atencion")
     }
 }

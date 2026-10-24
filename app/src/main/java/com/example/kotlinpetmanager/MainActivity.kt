@@ -21,7 +21,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             KotlinPetManagerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    PantallaManager(modifier = Modifier.padding(innerPadding))
                     FichaMascota(modifier = Modifier.padding(innerPadding))
                 }
             }
