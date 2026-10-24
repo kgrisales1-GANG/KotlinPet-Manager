@@ -28,5 +28,5 @@
 ## 📸 Capturas de Pantalla de la Aplicación
 <div align="center">
   <img src="https://github.com/user-attachments/assets/d8d28b21-fc94-4ff2-ad5d-93ba53c7b89d" width="300" alt="Formulario de Registro" />
-  <img src="https://github.com/user-attachments/assets/9d822253-9428-494b-b1de-2c945401ba88" width="300" alt="Sala de Espera" />
+  <img src="https://github.com/user-attachments/assets/73391b3a-5fed-402e-bf91-330788a93e5b" width="300" alt="Sala de Espera" />
 </div>
