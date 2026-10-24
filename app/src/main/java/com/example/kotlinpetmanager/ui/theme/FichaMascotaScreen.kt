@@ -1,11 +1,11 @@
-package com.example.kotlinpetmanager.ui.theme
-package com.example.kotlinpetmanager // Mantén tu paquete original
+package com.example.kotlinpetmanager
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily // Importante para la letra
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -16,12 +16,10 @@ fun FichaMascota(modifier: Modifier = Modifier) {
     var peso = 12.5f
     var estadoVacunacion = false
 
-    // Simulación: El paciente cumplió años y subió de peso
     edad += 1
     peso += 1.3f
     estadoVacunacion = true
 
-    // Clasificación de la mascota usando la estructura 'when'[cite: 7]
     val esUrgencia = true
     val categoria = when {
         edad in 0..1 -> "Cachorro"
@@ -30,24 +28,35 @@ fun FichaMascota(modifier: Modifier = Modifier) {
         else -> "Edad no válida"
     }
 
-    // Operadores lógicos en un 'if' para evaluar la prioridad[cite: 7]
     val atencion = if (esUrgencia || categoria == "Senior") {
         "Prioridad Alta"
     } else {
         "Atención Regular"
     }
 
-    // Interfaz visual actualizada
+    // TRAMO 4: Lista inmutable de pacientes en espera[cite: 7]
+    val mascotasEnEspera = listOf("Luna", "Max", "Bella", "Rocky")
+
+    // Interfaz visual actualizada con FontFamily.Serif
     Column(modifier = modifier.padding(16.dp)) {
-        Text(text = "🐾 Ficha del Paciente Actualizada")
-        Text(text = "----------------------------------")
-        Text(text = "Nombre: $nombre")
-        Text(text = "Sexo: $sexo")
-        Text(text = "Edad actual: $edad años")
-        Text(text = "Peso actual: $peso kg")
-        Text(text = "¿Vacunado?: $estadoVacunacion")
-        Text(text = "----------------------------------")
-        Text(text = "Categoría: $categoria")
-        Text(text = "Estado: $atencion")
+        Text(text = "🐾 Ficha del Paciente Actualizada", fontFamily = FontFamily.Serif)
+        Text(text = "Nombre: $nombre - Categoría: $categoria", fontFamily = FontFamily.Serif)
+        Text(text = "Estado: $atencion", fontFamily = FontFamily.Serif)
+
+        Text(text = "----------------------------------", fontFamily = FontFamily.Serif)
+
+        Text(text = "Pacientes en espera de consulta:", fontFamily = FontFamily.Serif)
+        // Recorremos la lista con un ciclo for[cite: 7]
+        for (i in mascotasEnEspera.indices) {
+            Text(text = "Turno ${i + 1}: ${mascotasEnEspera[i]}", fontFamily = FontFamily.Serif)
+        }
+
+        Text(text = "----------------------------------", fontFamily = FontFamily.Serif)
+
+        Text(text = "La clínica abre en:", fontFamily = FontFamily.Serif)
+        // Rango numérico regresivo (del 5 al 1)[cite: 7]
+        for (minuto in 5 downTo 1) {
+            Text(text = "$minuto minutos...", fontFamily = FontFamily.Serif)
+        }
     }
 }
