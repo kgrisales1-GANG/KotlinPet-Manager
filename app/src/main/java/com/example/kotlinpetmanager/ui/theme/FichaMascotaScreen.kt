@@ -58,5 +58,35 @@ fun FichaMascota(modifier: Modifier = Modifier) {
         for (minuto in 5 downTo 1) {
             Text(text = "$minuto minutos...", fontFamily = FontFamily.Serif)
         }
+        Text(text = "----------------------------------", fontFamily = FontFamily.Serif)
+
+        // TRAMO 5.1: Null Safety (Seguridad contra nulos)
+        // Declaramos el contacto como nulo usando el signo de interrogación (String?)
+        val contactoEmergencia: String? = null
+
+        // Medimos los caracteres de forma segura con '?.'
+        val caracteresContacto = contactoEmergencia?.length
+
+        // Usamos el operador Elvis '?:' para asignar un valor si es nulo[cite: 7]
+        val contactoFinal = contactoEmergencia ?: "Sin contacto registrado"
+
+        Text(text = "Contacto de emergencia: $contactoFinal", fontFamily = FontFamily.Serif)
+        Text(text = "Longitud del dato: $caracteresContacto", fontFamily = FontFamily.Serif)
+
+        Text(text = "----------------------------------", fontFamily = FontFamily.Serif)
+
+        // TRAMO 5.2: Lambdas y Funciones de Orden Superior[cite: 7]
+        Text(text = "Precios de servicios (Recargo Nocturno 10%):", fontFamily = FontFamily.Serif)
+
+        // Lista de precios base[cite: 7]
+        val preciosBase = listOf(50000.0, 25000.0, 15000.0)
+
+        // Función Lambda que recibe un precio y le suma el 10%[cite: 7]
+        val recargoNocturno = { precio: Double -> precio + (precio * 0.10) }
+
+        // Recorremos la lista con forEach y usamos 'it' para representar cada precio[cite: 7]
+        preciosBase.forEach {
+            Text(text = "Original: $$it -> Ajustado: $${recargoNocturno(it)}", fontFamily = FontFamily.Serif)
+        }
     }
 }
