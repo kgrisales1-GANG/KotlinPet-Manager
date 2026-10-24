@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,65 +21,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
-import java.util.UUID
 import com.example.kotlinpetmanager.ui.theme.KotlinPetManagerTheme
 
-// 1. Capa de Datos (Model) - Incluye los requisitos del profe y tus plus
-data class Paciente(
-    val id: String,
-    val nombre: String,
-    val especie: String,
-    val raza: String,
-    val edad: Int,
-    val tipoConsulta: String,
-    val contactoEmergencia: String,
-    val esUrgencia: Boolean,
-    val tiempoRegistroMillis: Long = System.currentTimeMillis()
-)
-
-// 2. Capa de Lógica y Estado (ViewModel)
-class PacienteViewModel {
-    var pacientes by mutableStateOf(listOf<Paciente>())
-        private set
-
-    var nombre by mutableStateOf("")
-    var especie by mutableStateOf("Canino 🐶") // Valor por defecto
-    var raza by mutableStateOf("")
-    var edadTexto by mutableStateOf("")
-    var tipoConsulta by mutableStateOf("Consulta General") // Valor por defecto
-    var contactoEmergencia by mutableStateOf("")
-    var esUrgencia by mutableStateOf(false)
-
-    fun agregarPaciente() {
-        val edadInt = edadTexto.toIntOrNull() ?: 0
-
-        if (nombre.isNotBlank() && raza.isNotBlank() && edadTexto.isNotBlank()) {
-            val nuevoPaciente = Paciente(
-                id = UUID.randomUUID().toString(),
-                nombre = nombre,
-                especie = especie,
-                raza = raza,
-                edad = edadInt,
-                tipoConsulta = tipoConsulta,
-                contactoEmergencia = contactoEmergencia,
-                esUrgencia = esUrgencia
-            )
-            pacientes = pacientes + nuevoPaciente
-            limpiarFormulario()
-        }
-    }
-
-    fun limpiarFormulario() {
-        nombre = ""
-        especie = "Canino 🐶"
-        raza = ""
-        edadTexto = ""
-        tipoConsulta = "Consulta General"
-        contactoEmergencia = ""
-        esUrgencia = false
-    }
-}
-
+// 3. CAPA DE INTERFAZ GRÁFICA (View)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,7 +37,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// 3. Capa de Interfaz Gráfica (View)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaPrincipal(viewModel: PacienteViewModel) {
@@ -162,7 +107,6 @@ fun FormularioRegistro(viewModel: PacienteViewModel) {
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
 
-        // Dropdown de Especie recuperado
         ExposedDropdownMenuBox(
             expanded = expandidoEspecie,
             onExpandedChange = { expandidoEspecie = !expandidoEspecie },
@@ -208,7 +152,6 @@ fun FormularioRegistro(viewModel: PacienteViewModel) {
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
 
-        // Dropdown de Consulta recuperado
         ExposedDropdownMenuBox(
             expanded = expandidoConsulta,
             onExpandedChange = { expandidoConsulta = !expandidoConsulta },
@@ -272,59 +215,61 @@ fun FormularioRegistro(viewModel: PacienteViewModel) {
 
 @Composable
 fun PantallaSalaEspera(pacientes: List<Paciente>, tiempoActual: Long) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        if (pacientes.isEmpty()) {
+    if (pacientes.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
             Text("No hay pacientes en la sala de espera.", fontSize = 16.sp)
         }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(16.dp)
+        ) {
+            items(pacientes) { paciente ->
+                val tiempoTranscurrido = tiempoActual - paciente.tiempoRegistroMillis
+                val tiempoRestanteMilis = maxOf(0L, 300_000L - tiempoTranscurrido)
 
-        pacientes.forEach { paciente ->
-            val tiempoTranscurrido = tiempoActual - paciente.tiempoRegistroMillis
-            val tiempoRestanteMilis = maxOf(0L, 300_000L - tiempoTranscurrido)
+                val minutos = (tiempoRestanteMilis / 1000) / 60
+                val segundos = (tiempoRestanteMilis / 1000) % 60
+                val tiempoFormateado = String.format("%02d:%02d", minutos, segundos)
 
-            val minutos = (tiempoRestanteMilis / 1000) / 60
-            val segundos = (tiempoRestanteMilis / 1000) % 60
-            val tiempoFormateado = String.format("%02d:%02d", minutos, segundos)
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = if (paciente.esUrgencia) Color(0xFF8B0000) else Color.DarkGray
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(text = "ID: ${paciente.id.take(8)}", color = Color.LightGray, fontSize = 12.sp)
+                        Text(text = "Nombre: ${paciente.nombre}", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "Especie: ${paciente.especie} - Raza: ${paciente.raza}", color = Color.White, fontSize = 16.sp)
+                        Text(text = "Edad: ${paciente.edad} años", color = Color.White, fontSize = 16.sp)
+                        Text(text = "Motivo: ${paciente.tipoConsulta}", color = Color.White, fontSize = 16.sp, modifier = Modifier.padding(top = 4.dp))
 
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = if (paciente.esUrgencia) Color(0xFF8B0000) else Color.DarkGray
-                ),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "ID: ${paciente.id.take(8)}", color = Color.LightGray, fontSize = 12.sp)
-                    Text(text = "Nombre: ${paciente.nombre}", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text(text = "Especie: ${paciente.especie} - Raza: ${paciente.raza}", color = Color.White, fontSize = 16.sp)
-                    Text(text = "Edad: ${paciente.edad} años", color = Color.White, fontSize = 16.sp)
-                    Text(text = "Motivo: ${paciente.tipoConsulta}", color = Color.White, fontSize = 16.sp, modifier = Modifier.padding(top = 4.dp))
+                        if (paciente.contactoEmergencia.isNotBlank()) {
+                            Text(text = "Contacto: ${paciente.contactoEmergencia}", color = Color.White, fontSize = 16.sp)
+                        }
 
-                    if (paciente.contactoEmergencia.isNotBlank()) {
-                        Text(text = "Contacto: ${paciente.contactoEmergencia}", color = Color.White, fontSize = 16.sp)
-                    }
-
-                    if (paciente.esUrgencia) {
-                        Text(
-                            text = "🚨 ¡ATENCIÓN INMEDIATA!",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    } else {
-                        val colorTiempo = if (tiempoRestanteMilis <= 0) Color.Green else Color.Yellow
-                        Text(
-                            text = "Espera estimada: $tiempoFormateado",
-                            color = colorTiempo,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                        if (tiempoRestanteMilis <= 0) {
-                            Text(text = "¡Ya puede ingresar al consultorio!", color = Color.Green)
+                        if (paciente.esUrgencia) {
+                            Text(
+                                text = "🚨 ¡ATENCIÓN INMEDIATA!",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        } else {
+                            val colorTiempo = if (tiempoRestanteMilis <= 0) Color.Green else Color.Yellow
+                            Text(
+                                text = "Espera estimada: $tiempoFormateado",
+                                color = colorTiempo,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                            if (tiempoRestanteMilis <= 0) {
+                                Text(text = "¡Ya puede ingresar al consultorio!", color = Color.Green)
+                            }
                         }
                     }
                 }
