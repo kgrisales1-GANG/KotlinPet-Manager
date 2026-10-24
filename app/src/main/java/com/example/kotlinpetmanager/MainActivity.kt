@@ -20,10 +20,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             KotlinPetManagerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    PantallaManager(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -31,11 +28,13 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+fun PantallaManager(modifier: Modifier = Modifier) {
+    Column(modifier = modifier.padding(16.dp)) {
+        Text(
+            text = "Bienvenido a KotlinPet Manager"
+        )
+
+    }
 }
 
 @Preview(showBackground = true)
