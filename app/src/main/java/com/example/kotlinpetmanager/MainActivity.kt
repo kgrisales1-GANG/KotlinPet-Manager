@@ -19,43 +19,46 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
-import java.util.UUID // Sirve para generar IDs únicos
+import java.util.UUID
 import com.example.kotlinpetmanager.ui.theme.KotlinPetManagerTheme
 
-// 1. CAPA DE DATOS (Model)
+// 1. Capa de Datos (Model) - Incluye los requisitos del profe y tus plus
 data class Paciente(
-    val id: String, // Identificador único
+    val id: String,
     val nombre: String,
-    val especie: String, // Sirve también para la raza
-    val edad: Int,       // Cambiado a Int como pidió el profe
+    val especie: String,
+    val raza: String,
+    val edad: Int,
+    val tipoConsulta: String,
     val contactoEmergencia: String,
     val esUrgencia: Boolean,
-    val tiempoRegistroMillis: Long = System.currentTimeMillis() // Nuestro Plus
+    val tiempoRegistroMillis: Long = System.currentTimeMillis()
 )
 
-// 2. CAPA DE LÓGICA Y ESTADO (ViewModel)
+// 2. Capa de Lógica y Estado (ViewModel)
 class PacienteViewModel {
-    // Mantiene la lista de pacientes con encadenamiento seguro (private set)
     var pacientes by mutableStateOf(listOf<Paciente>())
         private set
 
-    // Estado de los campos del formulario
     var nombre by mutableStateOf("")
-    var especie by mutableStateOf("")
-    var edadTexto by mutableStateOf("") // Lo leemos como texto de la caja
+    var especie by mutableStateOf("Canino 🐶") // Valor por defecto
+    var raza by mutableStateOf("")
+    var edadTexto by mutableStateOf("")
+    var tipoConsulta by mutableStateOf("Consulta General") // Valor por defecto
     var contactoEmergencia by mutableStateOf("")
     var esUrgencia by mutableStateOf(false)
 
-    // Función para validar e insertar
     fun agregarPaciente() {
-        val edadInt = edadTexto.toIntOrNull() ?: 0 // Convertimos a Int seguro
+        val edadInt = edadTexto.toIntOrNull() ?: 0
 
-        if (nombre.isNotBlank() && especie.isNotBlank() && edadTexto.isNotBlank()) {
+        if (nombre.isNotBlank() && raza.isNotBlank() && edadTexto.isNotBlank()) {
             val nuevoPaciente = Paciente(
-                id = UUID.randomUUID().toString(), // Genera un ID automático
+                id = UUID.randomUUID().toString(),
                 nombre = nombre,
                 especie = especie,
+                raza = raza,
                 edad = edadInt,
+                tipoConsulta = tipoConsulta,
                 contactoEmergencia = contactoEmergencia,
                 esUrgencia = esUrgencia
             )
@@ -64,11 +67,12 @@ class PacienteViewModel {
         }
     }
 
-    // Función para limpiar campos
     fun limpiarFormulario() {
         nombre = ""
-        especie = ""
+        especie = "Canino 🐶"
+        raza = ""
         edadTexto = ""
+        tipoConsulta = "Consulta General"
         contactoEmergencia = ""
         esUrgencia = false
     }
@@ -80,22 +84,20 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             KotlinPetManagerTheme {
-                // Instanciamos el ViewModel
                 val viewModel = remember { PacienteViewModel() }
-                AppKotlinPet(viewModel)
+                PantallaPrincipal(viewModel)
             }
         }
     }
 }
 
-// 3. CAPA DE INTERFAZ GRÁFICA (View)
+// 3. Capa de Interfaz Gráfica (View)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppKotlinPet(viewModel: PacienteViewModel) {
+fun PantallaPrincipal(viewModel: PacienteViewModel) {
     var tabSeleccionada by remember { mutableStateOf(0) }
     var tiempoActual by remember { mutableStateOf(System.currentTimeMillis()) }
 
-    // Reloj para la sala de espera
     LaunchedEffect(Unit) {
         while (true) {
             delay(1000)
@@ -103,7 +105,6 @@ fun AppKotlinPet(viewModel: PacienteViewModel) {
         }
     }
 
-    // Uso de Scaffold con TopAppBar
     Scaffold(
         topBar = {
             TopAppBar(
@@ -113,10 +114,10 @@ fun AppKotlinPet(viewModel: PacienteViewModel) {
                     titleContentColor = Color.White
                 )
             )
-        }
+        },
+        modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-            // Pestañas
             TabRow(selectedTabIndex = tabSeleccionada) {
                 Tab(
                     selected = tabSeleccionada == 0,
@@ -139,15 +140,21 @@ fun AppKotlinPet(viewModel: PacienteViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormularioRegistro(viewModel: PacienteViewModel) {
+    val opcionesEspecie = listOf("Canino 🐶", "Felino 🐱", "Conejo 🐰", "Ave 🦜", "Otro")
+    var expandidoEspecie by remember { mutableStateOf(false) }
+
+    val opcionesConsulta = listOf("Consulta General", "Vacunación", "Desparasitación", "Control Post-operatorio", "Estética / Peluquería")
+    var expandidoConsulta by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Campos OutlinedTextField
         OutlinedTextField(
             value = viewModel.nombre,
             onValueChange = { viewModel.nombre = it },
@@ -155,10 +162,41 @@ fun FormularioRegistro(viewModel: PacienteViewModel) {
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
 
+        // Dropdown de Especie recuperado
+        ExposedDropdownMenuBox(
+            expanded = expandidoEspecie,
+            onExpandedChange = { expandidoEspecie = !expandidoEspecie },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        ) {
+            OutlinedTextField(
+                value = viewModel.especie,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Especie") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandidoEspecie) },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                modifier = Modifier.menuAnchor().fillMaxWidth()
+            )
+            ExposedDropdownMenu(
+                expanded = expandidoEspecie,
+                onDismissRequest = { expandidoEspecie = false }
+            ) {
+                opcionesEspecie.forEach { opcion ->
+                    DropdownMenuItem(
+                        text = { Text(opcion) },
+                        onClick = {
+                            viewModel.especie = opcion
+                            expandidoEspecie = false
+                        }
+                    )
+                }
+            }
+        }
+
         OutlinedTextField(
-            value = viewModel.especie,
-            onValueChange = { viewModel.especie = it },
-            label = { Text("Especie o Raza") },
+            value = viewModel.raza,
+            onValueChange = { viewModel.raza = it },
+            label = { Text("Raza") },
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
 
@@ -169,6 +207,37 @@ fun FormularioRegistro(viewModel: PacienteViewModel) {
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
+
+        // Dropdown de Consulta recuperado
+        ExposedDropdownMenuBox(
+            expanded = expandidoConsulta,
+            onExpandedChange = { expandidoConsulta = !expandidoConsulta },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        ) {
+            OutlinedTextField(
+                value = viewModel.tipoConsulta,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Tipo de Consulta") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandidoConsulta) },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                modifier = Modifier.menuAnchor().fillMaxWidth()
+            )
+            ExposedDropdownMenu(
+                expanded = expandidoConsulta,
+                onDismissRequest = { expandidoConsulta = false }
+            ) {
+                opcionesConsulta.forEach { opcion ->
+                    DropdownMenuItem(
+                        text = { Text(opcion) },
+                        onClick = {
+                            viewModel.tipoConsulta = opcion
+                            expandidoConsulta = false
+                        }
+                    )
+                }
+            }
+        }
 
         OutlinedTextField(
             value = viewModel.contactoEmergencia,
@@ -181,11 +250,17 @@ fun FormularioRegistro(viewModel: PacienteViewModel) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
         ) {
-            Text("¿Requiere atención inmediata (Urgencia)?", modifier = Modifier.weight(1f))
-            Switch(checked = viewModel.esUrgencia, onCheckedChange = { viewModel.esUrgencia = it })
+            Text(
+                text = "¿Requiere atención inmediata (Urgencia)?",
+                modifier = Modifier.weight(1f),
+                fontSize = 16.sp
+            )
+            Switch(
+                checked = viewModel.esUrgencia,
+                onCheckedChange = { viewModel.esUrgencia = it }
+            )
         }
 
-        // Botón de acción
         Button(
             onClick = { viewModel.agregarPaciente() },
             modifier = Modifier.fillMaxWidth().height(50.dp)
@@ -198,7 +273,10 @@ fun FormularioRegistro(viewModel: PacienteViewModel) {
 @Composable
 fun PantallaSalaEspera(pacientes: List<Paciente>, tiempoActual: Long) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState())
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
     ) {
         if (pacientes.isEmpty()) {
             Text("No hay pacientes en la sala de espera.", fontSize = 16.sp)
@@ -207,6 +285,7 @@ fun PantallaSalaEspera(pacientes: List<Paciente>, tiempoActual: Long) {
         pacientes.forEach { paciente ->
             val tiempoTranscurrido = tiempoActual - paciente.tiempoRegistroMillis
             val tiempoRestanteMilis = maxOf(0L, 300_000L - tiempoTranscurrido)
+
             val minutos = (tiempoRestanteMilis / 1000) / 60
             val segundos = (tiempoRestanteMilis / 1000) % 60
             val tiempoFormateado = String.format("%02d:%02d", minutos, segundos)
@@ -219,21 +298,34 @@ fun PantallaSalaEspera(pacientes: List<Paciente>, tiempoActual: Long) {
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    // Ahora mostramos también el ID único y el contacto
                     Text(text = "ID: ${paciente.id.take(8)}", color = Color.LightGray, fontSize = 12.sp)
                     Text(text = "Nombre: ${paciente.nombre}", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text(text = "Especie/Raza: ${paciente.especie}", color = Color.White, fontSize = 16.sp)
+                    Text(text = "Especie: ${paciente.especie} - Raza: ${paciente.raza}", color = Color.White, fontSize = 16.sp)
                     Text(text = "Edad: ${paciente.edad} años", color = Color.White, fontSize = 16.sp)
+                    Text(text = "Motivo: ${paciente.tipoConsulta}", color = Color.White, fontSize = 16.sp, modifier = Modifier.padding(top = 4.dp))
 
                     if (paciente.contactoEmergencia.isNotBlank()) {
                         Text(text = "Contacto: ${paciente.contactoEmergencia}", color = Color.White, fontSize = 16.sp)
                     }
 
                     if (paciente.esUrgencia) {
-                        Text("🚨 ¡ATENCIÓN INMEDIATA!", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+                        Text(
+                            text = "🚨 ¡ATENCIÓN INMEDIATA!",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
                     } else {
                         val colorTiempo = if (tiempoRestanteMilis <= 0) Color.Green else Color.Yellow
-                        Text("Espera: $tiempoFormateado", color = colorTiempo, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+                        Text(
+                            text = "Espera estimada: $tiempoFormateado",
+                            color = colorTiempo,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                        if (tiempoRestanteMilis <= 0) {
+                            Text(text = "¡Ya puede ingresar al consultorio!", color = Color.Green)
+                        }
                     }
                 }
             }
